@@ -1,0 +1,23 @@
+# We recieved raw data from sequencing facility. We use customized barcoding system, where every sample in the wellplate has unique combination for reverse and forward barcode, which we later use for demultiplexing. After recieving data from the facility, quality was 
+# checked using FASTQC file. Trimming and merging was done using cutadapt (295F,235R) and fastq-join (p15, m25). All dataset was treated with the same procedure. Next, samples were demultiplexed based on barcode combination using custom Rscript and bashscript. 
+# As a result, we obtained demultiplexed files for each sample, which we further processed in QIIME version 2024.2.
+# First, we imported our data 
+qiime tools import \
+  --type 'SampleData[SequencesWithQuality]' \
+  --input-path ./manifest-file-stool.txt \
+  --output-path single-end-demux-stool.qza \
+  --input-format SingleEndFastqManifestPhred33V2
+
+qiime demux summarize \
+  --i-data single-end-demux-stool.qza \
+  --o-visualization single-end-demux-stool.qzv
+
+# DADA2 
+qiime dada2 denoise-single \
+--i-demultiplexed-seqs single-end-demux-stool.qza \
+--p-trunc-len 0 \
+--p-n-threads 28 \
+--o-table feature-table-stool.qza \
+--o-representative-sequences asv-repseqs-stool.qza \
+--o-denoising-stats stats-stool.qza
+
